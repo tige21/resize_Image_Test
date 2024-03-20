@@ -1,118 +1,98 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useEffect, useState } from 'react'
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+	Button,
+	Dimensions,
+	Image,
+	SafeAreaView,
+	StyleSheet,
+	View,
+} from 'react-native'
+import ImagePicker from 'react-native-image-crop-picker'
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const screenWidth = Dimensions.get('window').width
+const blockHeight = (screenWidth * 16) / 9
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const ImageCropScreen = () => {
+	const [image, setImage] = useState<{ uri: string } | null>(null)
+	const [sizeOfImage, setSizeOfImage] = useState({ width: 0, height: 0 })
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+	const openImagePicker = () => {
+		ImagePicker.openPicker({
+			width: 1600,
+			height: 900,
+			cropping: true,
+			cropperChooseText: 'Завершить',
+			cropperCancelText: 'Отмена',
+			cropperToolbarTitle: 'Обрезать изображение',
+		})
+			.then(croppedImage => {
+				setImage({ uri: croppedImage.path })
+			})
+			.catch(e => {
+				console.log(e)
+			})
+	}
+
+	useEffect(() => {
+		if (image) {
+			Image.getSize(image.uri, (width, height) => {
+				setSizeOfImage({ width, height })
+			})
+		}
+	}, [image])
+
+	console.log(sizeOfImage)
+
+	console.log(
+		`Height of 16:9 block: ${blockHeight.toFixed(
+			3
+		)}, width - ${screenWidth.toFixed(3)}}`
+	)
+
+	return (
+		<View style={styles.container}>
+			{!image && (
+				<Button title='Загрузить изображение' onPress={openImagePicker} />
+			)}
+			{image && (
+				<View
+					style={[
+						styles.imageContainer,
+						{ width: screenWidth, height: blockHeight },
+					]}
+				>
+					<Image source={image} style={styles.image} />
+				</View>
+			)}
+		</View>
+	)
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+function App() {
+	return (
+		<SafeAreaView style={styles.safeArea}>
+			<ImageCropScreen />
+		</SafeAreaView>
+	)
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+	safeArea: {
+		flex: 1,
+	},
+	container: {
+		flex: 1,
+		justifyContent: 'flex-end',
+	},
+	imageContainer: {
+		borderWidth: 1,
+		borderColor: 'teal',
+		marginTop: 20,
+	},
+	image: {
+		width: '100%',
+		height: '100%',
+	},
+})
 
-export default App;
+export default App
